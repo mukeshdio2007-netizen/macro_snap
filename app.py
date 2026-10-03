@@ -264,8 +264,16 @@ with button_col:
                 f"📋 **Daily Nutrition Summary:**\n\n{summary}\n\n📲 **[Click here to open in WhatsApp]({wa_url})**"
             )
             
-            st.success("Summary ready! Click below to open & send via WhatsApp 📲")
-            st.link_button("💬 Open & Send in WhatsApp", wa_url, use_container_width=True)
+            # Send message via Twilio API directly to user's WhatsApp phone number
+            success, info = send_whatsapp(
+                st.session_state.whatsapp_number, st.session_state.name, summary
+            )
+            if success:
+                st.success(f"📱 Message sent to your WhatsApp number ({st.session_state.whatsapp_number})! Check your phone 📲")
+            else:
+                st.warning(f"ℹ️ Twilio status: {info}")
+                
+            st.link_button("💬 Open & Send in WhatsApp App / Web", wa_url, use_container_width=True)
 
 st.caption(
     f"Logged in as **{st.session_state.name}** - updates go to **{st.session_state.whatsapp_number}**"
