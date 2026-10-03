@@ -152,8 +152,8 @@ def format_whatsapp_number(phone_str):
 
 # Step 1: Onboarding (Name and WhatsApp number)
 if "onboarded" not in st.session_state:
-    st.title("🥗 MacroSnap")
-    st.caption("Snap it. Track it. Text yourself the results.")
+    st.title("🌐 MacroSnap")
+    st.caption("Snap it. Translate it. Text yourself the results.")
 
     with st.form("onboarding_form"):
         name = st.text_input("Your Name", placeholder="e.g. Mukesh")
@@ -196,16 +196,16 @@ if "onboarded" not in st.session_state:
 
 # Sidebar Controls & File Uploads
 with st.sidebar:
-    st.header("🥗 MacroSnap")
+    st.header("🌐 MacroSnap")
     st.markdown(f"**User:** {st.session_state.name}\n\n**WhatsApp:** {st.session_state.whatsapp_number}")
     st.divider()
-    st.subheader("📸 Upload Meal Photo")
+    st.subheader("📸 Upload Image to Translate")
     st.caption("Drag & drop an image, browse files, or take a photo.")
     
     sidebar_file = st.file_uploader("Drag & Drop or Browse Image", type=["jpg", "jpeg", "png", "webp"], key="sidebar_uploader")
     
     with st.expander("📷 Camera Input"):
-        camera_file = st.camera_input("Take a photo of your meal", key="camera_input")
+        camera_file = st.camera_input("Take a photo to translate", key="camera_input")
     
     st.divider()
     if st.button("🔄 Reset Session / Logout", use_container_width=True):
@@ -222,9 +222,9 @@ if active_upload is not None:
         add_message("user", "image", photo_bytes)
         parts = [
             types.Part.from_bytes(data=photo_bytes, mime_type=active_upload.type or "image/jpeg"),
-            "What is this meal? Give me the estimated calories, protein, carbs, and fats."
+            "Extract all visible text from this image, identify the source language, translate it into English, and provide a clear explanation."
         ]
-        with st.spinner("Crunching the numbers..."):
+        with st.spinner("Extracting & translating text..."):
             answer = ask_gemini(parts)
         add_message("assistant", "text", answer)
         st.rerun()
@@ -235,7 +235,7 @@ import urllib.parse
 
 def get_whatsapp_direct_url(phone_number, user_name, summary):
     formatted_phone = format_whatsapp_number(phone_number)
-    text = f"🥗 *MacroSnap Summary for {user_name}*\n\n{summary}"
+    text = f"🌐 *MacroSnap Translation Summary for {user_name}*\n\n{summary}"
     encoded = urllib.parse.quote(text)
     return f"https://api.whatsapp.com/send?phone={formatted_phone}&text={encoded}"
 
@@ -243,14 +243,14 @@ def get_whatsapp_direct_url(phone_number, user_name, summary):
 header_col, button_col = st.columns([5, 2], vertical_alignment="center")
 
 with header_col:
-    st.title("🥗 MacroSnap")
+    st.title("🌐 MacroSnap")
 
 with button_col:
     if st.button("📤 Send to WhatsApp", use_container_width=True):
         if len(st.session_state.messages) <= 1:
-            st.info("💡 Log at least one meal or upload a photo first, then click here to generate & text your daily summary!")
+            st.info("💡 Upload an image or send a message first, then click here to generate & text your translation summary!")
         else:
-            with st.spinner("Summarizing your day..."):
+            with st.spinner("Summarizing your translations..."):
                 summary = ask_gemini([SUMMARY_REQUEST_PROMPT])
             
             wa_url = get_whatsapp_direct_url(
@@ -261,7 +261,7 @@ with button_col:
             add_message(
                 "assistant",
                 "text",
-                f"📋 **Daily Nutrition Summary:**\n\n{summary}\n\n📲 **[Click here to open in WhatsApp]({wa_url})**"
+                f"📋 **Image Translation Summary:**\n\n{summary}\n\n📲 **[Click here to open in WhatsApp]({wa_url})**"
             )
             
             # Send message via Twilio API directly to user's WhatsApp phone number
@@ -291,7 +291,7 @@ else:
 
 
 user_input = st.chat_input(
-    "Ask a question or attach a photo of your meal (use 📎 paperclip or sidebar to upload)",
+    "Ask a question or upload an image containing text (use 📎 paperclip or sidebar to upload)",
     accept_file=True,
     file_type=["jpg", "jpeg", "png", "webp"],
 )
@@ -309,9 +309,9 @@ if user_input:
         add_message("user", "text", text)
         parts.append(text)
     elif photo is not None:
-        parts.append("What is this meal? Give me the calories and macros.")
+        parts.append("Extract all visible text from this image, identify the source language, translate it into English, and explain the meaning.")
 
-    with st.spinner("Crunching the numbers..."):
+    with st.spinner("Extracting & translating text..."):
         answer = ask_gemini(parts)
     add_message("assistant", "text", answer)
 
