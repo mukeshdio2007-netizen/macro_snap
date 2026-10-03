@@ -41,7 +41,7 @@ GEMINI_MODEL = load_secret("GEMINI_MODEL", "gemini-3.5-flash-lite")
 TWILIO_ACCOUNT_SID = load_secret("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = load_secret("TWILIO_AUTH_TOKEN")
 TWILIO_CONTENT_SID = load_secret("TWILIO_CONTENT_SID")
-TWILIO_WHATSAPP_FROM = load_secret("TWILIO_WHATSAPP_FROM", "whatsapp:+17372508034")
+TWILIO_WHATSAPP_FROM = load_secret("TWILIO_WHATSAPP_FROM", "whatsapp:+14155238886")
 
 if not GEMINI_API_KEY:
     st.error("Gemini API key is missing! Please configure GEMINI_API_KEY in .streamlit/secrets.toml or as an environment variable.")
@@ -156,7 +156,7 @@ if "onboarded" not in st.session_state:
     st.caption("Snap it. Translate it. Text yourself the results.")
 
     with st.form("onboarding_form"):
-        name = st.text_input("Your Name", placeholder="e.g. Mukesh")
+        name = st.text_input("Your Name", placeholder="e.g. Alex")
         col_code, col_num = st.columns([1, 2])
         with col_code:
             country_code = st.selectbox(
@@ -165,7 +165,7 @@ if "onboarded" not in st.session_state:
                 index=0
             )
         with col_num:
-            phone_input = st.text_input("WhatsApp Number", placeholder="9080543824")
+            phone_input = st.text_input("WhatsApp Number", placeholder="9876543210")
 
         submitted = st.form_submit_button("Let's go 🚀")
 
