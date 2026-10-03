@@ -11,16 +11,40 @@ from prompts import (
     SUMMARY_REQUEST_PROMPT
 )
 
-# Fetch configuration from st.secrets or os.getenv
-GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
-GEMINI_MODEL = st.secrets.get("GEMINI_MODEL") or os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
-TWILIO_ACCOUNT_SID = st.secrets.get("TWILIO_ACCOUNT_SID") or os.getenv("TWILIO_ACCOUNT_SID")
-TWILIO_AUTH_TOKEN = st.secrets.get("TWILIO_AUTH_TOKEN") or os.getenv("TWILIO_AUTH_TOKEN")
-TWILIO_CONTENT_SID = st.secrets.get("TWILIO_CONTENT_SID") or os.getenv("TWILIO_CONTENT_SID")
-TWILIO_WHATSAPP_FROM = st.secrets.get("TWILIO_WHATSAPP_FROM") or os.getenv("TWILIO_WHATSAPP_FROM", "whatsapp:+17372508034")
+def load_secret(key, default=None):
+    try:
+        if key in st.secrets:
+            val = st.secrets[key]
+            if val:
+                return val
+    except Exception:
+        pass
+
+    env_val = os.getenv(key)
+    if env_val:
+        return env_val
+
+    for fname in [".streamlit/secrets.toml", ".streamlit/Secrets.toml"]:
+        if os.path.exists(fname):
+            try:
+                import toml
+                parsed = toml.load(fname)
+                if key in parsed and parsed[key]:
+                    return parsed[key]
+            except Exception:
+                pass
+    return default
+
+
+GEMINI_API_KEY = load_secret("GEMINI_API_KEY")
+GEMINI_MODEL = load_secret("GEMINI_MODEL", "gemini-3.5-flash")
+TWILIO_ACCOUNT_SID = load_secret("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = load_secret("TWILIO_AUTH_TOKEN")
+TWILIO_CONTENT_SID = load_secret("TWILIO_CONTENT_SID")
+TWILIO_WHATSAPP_FROM = load_secret("TWILIO_WHATSAPP_FROM", "whatsapp:+17372508034")
 
 if not GEMINI_API_KEY:
-    st.error("Gemini API key is missing! Please configure GEMINI_API_KEY in .streamlit/Secrets.toml or as an environment variable.")
+    st.error("Gemini API key is missing! Please configure GEMINI_API_KEY in .streamlit/secrets.toml or as an environment variable.")
     st.stop()
 
 
@@ -244,14 +268,8 @@ with button_col:
                 f"📋 **Daily Nutrition Summary:**\n\n{summary}\n\n📲 **[Click here to open in WhatsApp]({wa_url})**"
             )
             
-            success, info = send_whatsapp(
-                st.session_state.whatsapp_number, st.session_state.name, summary
-            )
-            if success:
-                st.success("Sent via Twilio! Check your WhatsApp 📲")
-            else:
-                st.info(f"ℹ️ {info}")
-                st.link_button("💬 Send via WhatsApp Web / App", wa_url, use_container_width=True)
+            st.success("Summary ready! Click below to open & send via WhatsApp 📲")
+            st.link_button("💬 Open & Send in WhatsApp", wa_url, use_container_width=True)
 
 st.caption(
     f"Logged in as **{st.session_state.name}** - updates go to **{st.session_state.whatsapp_number}**"
