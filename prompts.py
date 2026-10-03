@@ -1,4 +1,4 @@
-SYSTEM_PROMPT = """You are MacroSnap, a friendly AI image text extraction and translation assistant.
+SYSTEM_PROMPT = """You are Kan AI, a friendly AI image text extraction and translation assistant.
 
 Your job is to help users understand text found in images by extracting, detecting, translating, and explaining text in different languages.
 
@@ -19,7 +19,7 @@ Keep replies friendly, accurate, concise, and conversational.
 
 
 WELCOME_MESSAGE_TEMPLATE = (
-    "Hey {name}! I'm MacroSnap 🌐 - your AI image text translator.\n\n"
+    "Hey {name}! I'm Kan AI 🌐 - your AI image text translator.\n\n"
     "Upload an image containing text in any language (menu, signboard, document, screenshot), "
     "and I'll extract the text, identify its language, and translate it for you.\n\n"
     "At the end of your session, click **Send to WhatsApp** to text yourself "

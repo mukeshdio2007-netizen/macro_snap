@@ -90,7 +90,7 @@ def send_whatsapp(to_number, user_name, summary):
             kwargs["content_sid"] = TWILIO_CONTENT_SID
             kwargs["content_variables"] = content_variables
         else:
-            kwargs["body"] = f"Hi {user_name}!\n\nHere is your MacroSnap summary:\n\n{summary}"
+            kwargs["body"] = f"Hi {user_name}!\n\nHere is your Kan AI summary:\n\n{summary}"
 
         message = twilio_client.messages.create(**kwargs)
         return True, message.sid
@@ -152,7 +152,7 @@ def format_whatsapp_number(phone_str):
 
 # Step 1: Onboarding (Name and WhatsApp number)
 if "onboarded" not in st.session_state:
-    st.title("🌐 MacroSnap")
+    st.title("🌐 Kan AI")
     st.caption("Snap it. Translate it. Text yourself the results.")
 
     with st.form("onboarding_form"):
@@ -196,7 +196,7 @@ if "onboarded" not in st.session_state:
 
 # Sidebar Controls & File Uploads
 with st.sidebar:
-    st.header("🌐 MacroSnap")
+    st.header("🌐 Kan AI")
     st.markdown(f"**User:** {st.session_state.name}\n\n**WhatsApp:** {st.session_state.whatsapp_number}")
     st.divider()
     st.subheader("📸 Upload Image to Translate")
@@ -235,7 +235,7 @@ import urllib.parse
 
 def get_whatsapp_direct_url(phone_number, user_name, summary):
     formatted_phone = format_whatsapp_number(phone_number)
-    text = f"🌐 *MacroSnap Translation Summary for {user_name}*\n\n{summary}"
+    text = f"🌐 *Kan AI Translation Summary for {user_name}*\n\n{summary}"
     encoded = urllib.parse.quote(text)
     return f"https://api.whatsapp.com/send?phone={formatted_phone}&text={encoded}"
 
@@ -243,7 +243,7 @@ def get_whatsapp_direct_url(phone_number, user_name, summary):
 header_col, button_col = st.columns([5, 2], vertical_alignment="center")
 
 with header_col:
-    st.title("🌐 MacroSnap")
+    st.title("🌐 Kan AI")
 
 with button_col:
     if st.button("📤 Send to WhatsApp", use_container_width=True):
