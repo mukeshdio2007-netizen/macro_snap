@@ -37,7 +37,7 @@ def load_secret(key, default=None):
 
 
 GEMINI_API_KEY = load_secret("GEMINI_API_KEY")
-GEMINI_MODEL = load_secret("GEMINI_MODEL", "gemini-3.5-flash")
+GEMINI_MODEL = load_secret("GEMINI_MODEL", "gemini-3.5-flash-lite")
 TWILIO_ACCOUNT_SID = load_secret("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = load_secret("TWILIO_AUTH_TOKEN")
 TWILIO_CONTENT_SID = load_secret("TWILIO_CONTENT_SID")
@@ -121,29 +121,25 @@ import time
 
 
 def ask_gemini(parts):
-    for attempt in range(2):
+    try:
+        return st.session_state.chat.send_message(parts).text
+    except Exception:
+        pass
+
+    # Automatic fallback cascade to alternate working models if primary model quota is exhausted
+    fallback_models = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3.8-flash", "gemini-flash-latest"]
+    for alt_model in fallback_models:
         try:
-            return st.session_state.chat.send_message(parts).text
-        except Exception as error:
-            err_str = str(error)
-            if ("503" in err_str or "UNAVAILABLE" in err_str or "high demand" in err_str) and attempt == 0:
-                time.sleep(1.5)
-                continue
-            
-            # Fallback to alternate models if 503 high demand persists on primary model
-            if "503" in err_str or "UNAVAILABLE" in err_str or "high demand" in err_str:
-                for alt_model in ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3.8-flash"]:
-                    try:
-                        res = gemini_client.models.generate_content(
-                            model=alt_model,
-                            contents=parts
-                        )
-                        if res and res.text:
-                            return res.text
-                    except Exception:
-                        continue
-            
-            return f"⚠️ The AI model is currently experiencing high demand (503). Please wait 5-10 seconds and try again!\n\n*(Detail: {error})*"
+            res = gemini_client.models.generate_content(
+                model=alt_model,
+                contents=parts
+            )
+            if res and res.text:
+                return res.text
+        except Exception:
+            continue
+
+    return "⚠️ All Gemini AI model quotas are currently busy. Please wait a moment and try again!"
 
 
 def format_whatsapp_number(phone_str):
