@@ -212,22 +212,39 @@ with st.sidebar:
         st.session_state.clear()
         st.rerun()
 
+import io
+from PIL import Image
+
+
+def optimize_image_bytes(image_bytes, max_size=(1600, 1600), quality=85):
+    try:
+        img = Image.open(io.BytesIO(image_bytes))
+        img.thumbnail(max_size, Image.Resampling.LANCZOS)
+        if img.mode in ("RGBA", "P"):
+            img = img.convert("RGB")
+        output = io.BytesIO()
+        img.save(output, format="JPEG", quality=quality, optimize=True)
+        return output.getvalue(), "image/jpeg"
+    except Exception:
+        return image_bytes, "image/jpeg"
+
+
 # Process image from sidebar uploader or camera input
 active_upload = sidebar_file or camera_file
 if active_upload is not None:
     upload_id = f"{active_upload.name}_{active_upload.size}"
     if st.session_state.get("last_processed_upload") != upload_id:
         st.session_state.last_processed_upload = upload_id
-        photo_bytes = active_upload.getvalue()
+        raw_bytes = active_upload.getvalue()
+        photo_bytes, mime_type = optimize_image_bytes(raw_bytes)
         add_message("user", "image", photo_bytes)
         parts = [
-            types.Part.from_bytes(data=photo_bytes, mime_type=active_upload.type or "image/jpeg"),
+            types.Part.from_bytes(data=photo_bytes, mime_type=mime_type),
             "Extract all visible text from this image, identify the source language, translate it into English, and provide a clear explanation."
         ]
         with st.spinner("Extracting & translating text..."):
             answer = ask_gemini(parts)
         add_message("assistant", "text", answer)
-        st.rerun()
 
 
 import urllib.parse
@@ -290,8 +307,26 @@ else:
         render_message(message)
 
 
+with st.expander("📸 Upload or Snap Photo (Mobile Quick Upload)", expanded=False):
+    main_photo = st.file_uploader("Select image file to translate", type=["jpg", "jpeg", "png", "webp"], key="main_file_uploader")
+    if main_photo is not None:
+        main_upload_id = f"main_{main_photo.name}_{main_photo.size}"
+        if st.session_state.get("last_processed_upload") != main_upload_id:
+            st.session_state.last_processed_upload = main_upload_id
+            raw_bytes = main_photo.getvalue()
+            photo_bytes, mime_type = optimize_image_bytes(raw_bytes)
+            add_message("user", "image", photo_bytes)
+            parts = [
+                types.Part.from_bytes(data=photo_bytes, mime_type=mime_type),
+                "Extract all visible text from this image, identify the source language, translate it into English, and provide a clear explanation."
+            ]
+            with st.spinner("Extracting & translating text..."):
+                answer = ask_gemini(parts)
+            add_message("assistant", "text", answer)
+
+
 user_input = st.chat_input(
-    "Ask a question or upload an image containing text (use 📎 paperclip or sidebar to upload)",
+    "Ask a question or upload an image containing text (use 📎 paperclip or box above)",
     accept_file=True,
     file_type=["jpg", "jpeg", "png", "webp"],
 )
@@ -302,9 +337,10 @@ if user_input:
     parts = []
 
     if photo is not None:
-        photo_bytes = photo.getvalue()
+        raw_bytes = photo.getvalue()
+        photo_bytes, mime_type = optimize_image_bytes(raw_bytes)
         add_message("user", "image", photo_bytes)
-        parts.append(types.Part.from_bytes(data=photo_bytes, mime_type=photo.type or "image/jpeg"))
+        parts.append(types.Part.from_bytes(data=photo_bytes, mime_type=mime_type))
     if text:
         add_message("user", "text", text)
         parts.append(text)
